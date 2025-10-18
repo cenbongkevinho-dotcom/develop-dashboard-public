@@ -27,6 +27,9 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     footer { margin-top: 16px; font-size: 12px; color: var(--muted); }
+    .btn { background: #3c5a99; color: #fff; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+    .btn.disabled, .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    input[type=password] { background: #0f1115; color: var(--text); border: 1px solid #2d3442; border-radius: 6px; padding: 6px 8px; }
   </style>
 </head>
 <body>
@@ -49,6 +52,14 @@
     <section class="card">
       <div class="row"><strong>CI 状态</strong></div>
       <div id="ci" class="list"></div>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>需我确认的任务清单</strong></div>
+      <div id="login-gate" class="muted" style="margin:8px 0 12px"></div>
+      <div id="needs-confirm" class="list">
+        <div class="muted">暂无需确认的条目。请为需要你的确认的 Issue/PR 添加标签 “Needs: Confirm”。</div>
+      </div>
     </section>
 
     <section class="card">
@@ -95,6 +106,68 @@
       return `<div class="row"><span>${k}</span><span class="badge ${cls}">${text}</span></div>`;
     }
 
+    // 登录与确认逻辑（方案二：服务端校验 + 私仓写回）
+    (function(){
+      const CONFIG = {
+        API_BASE: localStorage.getItem('confirm_api_base') || '',
+        USERNAME: 'admin'
+      };
+      const state = { loggedIn:false, authHeader:'' };
+      function setApiBase(){
+        const v = prompt('请输入确认 API 地址（如 https://confirm.example.com）', CONFIG.API_BASE||'');
+        if(v){
+          CONFIG.API_BASE = v.trim();
+          localStorage.setItem('confirm_api_base', CONFIG.API_BASE);
+          renderLoginGate();
+        }
+      }
+      function enableConfirmButtons(on){
+        document.querySelectorAll('[data-confirm-btn]').forEach(btn=>{
+          if(on){ btn.removeAttribute('disabled'); btn.classList.remove('disabled'); }
+          else { btn.setAttribute('disabled','disabled'); btn.classList.add('disabled'); }
+        });
+      }
+      async function loginConfirm(){
+        const pwdInput = document.getElementById('confirm-pwd');
+        if(!pwdInput) return;
+        const pwd = pwdInput.value.trim();
+        if(!CONFIG.API_BASE){ alert('尚未配置确认 API 地址'); return; }
+        const auth = 'Basic ' + btoa(CONFIG.USERNAME + ':' + pwd);
+        try {
+          const r = await fetch(CONFIG.API_BASE + '/auth/check', { headers: { 'Authorization': auth } });
+          if(r.ok){ state.loggedIn=true; state.authHeader=auth; const st=document.getElementById('login-status'); if(st) st.textContent='已登录'; enableConfirmButtons(true); }
+          else alert('密码错误');
+        } catch(e){ alert('无法连接确认 API：' + e); }
+      }
+      async function confirmItem(type, number, repoFull){
+        if(!state.loggedIn){ alert('请先登录'); return; }
+        if(!CONFIG.API_BASE){ alert('尚未配置确认 API 地址'); return; }
+        const payload = { type, number, repo: repoFull, actions: { removeLabel:'Needs: Confirm', addLabel: 'Confirmed', comment: '已由负责人确认' } };
+        try {
+          const r = await fetch(CONFIG.API_BASE + '/confirm', { method:'POST', headers: { 'Authorization': state.authHeader, 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+          const body = await r.json().catch(()=>({}));
+          if(r.ok){ alert('确认已提交：' + (body.message||'成功')); }
+          else alert('确认失败：' + (body.error||r.status));
+        } catch(e){ alert('网络错误：' + e); }
+      }
+      function renderLoginGate(){
+        const gate = document.getElementById('login-gate');
+        if(!gate) return;
+        gate.innerHTML = `<div style="padding:8px;border:1px solid #262b36;border-radius:8px;background:#0f1115;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="font-weight:600">确认操作登录</div>
+          <input id="confirm-pwd" type="password" placeholder="输入密码" />
+          <button onclick="window._loginConfirm()" class="btn">登录</button>
+          <button onclick="window._setApiBase()" class="btn" style="background:#555">设置 API 地址</button>
+          <div id="login-status" class="muted">未登录</div>
+        </div>`;
+        enableConfirmButtons(false);
+      }
+      window._setApiBase = setApiBase;
+      window._loginConfirm = loginConfirm;
+      window.confirmItem = confirmItem;
+      document.addEventListener('DOMContentLoaded', renderLoginGate);
+    })();
+
     async function main() {
       try {
         const res = await fetch(JSON_URL, { cache: 'no-store' });
@@ -103,6 +176,18 @@
         $('#milestones').innerHTML = (data.milestones || []).map(milestoneRow).join('');
         $('#agents').innerHTML = (data.agents || []).map(agentRow).join('');
         $('#ci').innerHTML = Object.entries(data.ci || {}).map(([k,v]) => ciRow(k, v)).join('');
+        // 渲染需确认清单（若数据源提供）
+        const nc = data.needsConfirm || {}; const items = [];
+        (nc.issues || []).forEach(it => items.push({ type: 'issue', ...it }));
+        (nc.prs || []).forEach(it => items.push({ type: 'pr', ...it }));
+        if(items.length){
+          const repoDefault = data.repo || 'cenbongkevinho-dotcom/Develop';
+          $('#needs-confirm').innerHTML = items.map(it => {
+            const repoFull = it.repo || repoDefault;
+            const title = it.title || `${it.type.toUpperCase()} #${it.number}`;
+            return `<div class="row"><span>${title}</span><button class="btn" data-confirm-btn onclick="confirmItem('${it.type}', ${it.number}, '${repoFull}')">确认</button></div>`;
+          }).join('');
+        }
       } catch (e) {
         $('#updated').textContent = '数据加载失败，请稍后重试。';
       }
