@@ -12,6 +12,10 @@ Quick links:
 - Data Source (JSON, Raw): https://raw.githubusercontent.com/cenbongkevinho-dotcom/develop-dashboard-public/main/docs/dashboard.json
 - HTML Preview (auto-render): https://htmlpreview.github.io/?https://raw.githubusercontent.com/cenbongkevinho-dotcom/develop-dashboard-public/main/docs/project-dashboard.html
 
+Scan with your phone (HTML Preview):
+
+![Public Mirror QR Code](https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=https%3A%2F%2Fhtmlpreview.github.io%2F%3Fhttps%3A%2F%2Fraw.githubusercontent.com%2Fcenbongkevinho-dotcom%2Fdevelop-dashboard-public%2Fmain%2Fdocs%2Fproject-dashboard.html)
+
 Notes:
 - No sensitive documents are included; this mirror only contains summary data and UI for progress viewing.
 - If you need richer views, please use the private repository or request access.
@@ -27,6 +31,10 @@ Notes:
 - 仪表盘（Markdown）：https://github.com/cenbongkevinho-dotcom/develop-dashboard-public/blob/main/docs/project-dashboard.md
 - 数据源（JSON, Raw）：https://raw.githubusercontent.com/cenbongkevinho-dotcom/develop-dashboard-public/main/docs/dashboard.json
 - HTML 预览（自动渲染）：https://htmlpreview.github.io/?https://raw.githubusercontent.com/cenbongkevinho-dotcom/develop-dashboard-public/main/docs/project-dashboard.html
+
+手机扫码打开（HTML 预览，免登录）：
+
+![公开镜像二维码](https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=https%3A%2F%2Fhtmlpreview.github.io%2F%3Fhttps%3A%2F%2Fraw.githubusercontent.com%2Fcenbongkevinho-dotcom%2Fdevelop-dashboard-public%2Fmain%2Fdocs%2Fproject-dashboard.html)
 
 说明：
 - 本镜像不包含内部文档、成本、供应商信息或任何敏感材料，仅提供进度汇总视图。
