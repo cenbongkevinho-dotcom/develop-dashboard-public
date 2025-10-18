@@ -1,0 +1,26 @@
+{
+  "title": "Project Dashboard (Public Mirror)",
+  "updated_at": "2025-10-18T02:34:59Z",
+  "milestones": [
+    { "name": "M1: Setup & Infra", "progress": 1.0 },
+    { "name": "M2: Dashboard & Mobile UX", "progress": 0.85 },
+    { "name": "M3: Auto Sync & Publishing", "progress": 0.40 },
+    { "name": "M4: Optimization & Alerts", "progress": 0.25 }
+  ],
+  "agents": [
+    { "name": "README entry (links & QR)", "status": "done" },
+    { "name": "Public mirror repository", "status": "done" },
+    { "name": "Push MD/HTML/JSON to public", "status": "in_progress" },
+    { "name": "Design auto-sync (PAT/Secrets)", "status": "todo" }
+  ],
+  "ci": {
+    "lint": "pass",
+    "build": "pass",
+    "code_scanning": "progress",
+    "html_preview": "htmlpreview.github.io"
+  },
+  "notes": [
+    "Sanitized public mirror. No internal documents or sensitive data included.",
+    "Use private repository for full context or request access."
+  ]
+}
